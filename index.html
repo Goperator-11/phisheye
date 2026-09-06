@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>피싱아이 — 청소년 스미싱·피싱 판별기</title>
+<meta name="description" content="의심스러운 문자를 붙여넣으면 위험한 이유를 문장 단위로 짚어주는 청소년용 사기 문자 판별·학습 웹앱.">
+
+<!-- 홈 화면에 설치되는 앱(PWA)으로 동작하기 위한 설정 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f62e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="피싱아이">
+<link rel="icon" href="assets/icon-app.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon-180.png">
+
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 34C17 20 43 20 54 34 43 48 17 48 6 34Z" stroke="currentColor" stroke-width="4"/>
+          <circle cx="21" cy="34" r="7" fill="currentColor" stroke="none"/>
+          <path d="M45 7v20c0 12-14 13-14 4.5" stroke="var(--icon-halo)" stroke-width="10"/>
+          <path d="M45 7v20c0 12-14 13-14 4.5" stroke="currentColor" stroke-width="4"/>
+        </g>
+      </svg>
+      피싱아이
+    </div>
+    <p class="tagline">의심스러운 문자, 누르기 전에 3초만.<br>왜 위험한지 문장 단위로 짚어드립니다.</p>
+    <div class="privacy-note" id="privacy-note">입력한 문자는 서버로 전송되지 않습니다</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="analyze">문자 분석</button>
+    <button role="tab" aria-selected="false" data-tab="quiz">사기 문자 훈련</button>
+    <button role="tab" aria-selected="false" data-tab="guide">당했을 때</button>
+  </div>
+
+  <!-- ── 분석 탭 ─────────────────────────────────── -->
+  <section class="panel active" id="panel-analyze">
+    <div class="card">
+      <h2>문자를 그대로 붙여넣으세요</h2>
+      <p class="sub">발신번호, 링크까지 통째로 넣을수록 정확해집니다.</p>
+      <textarea id="input" placeholder="예) [국제발신] 택배 배송이 보류되었습니다. 주소 확인 ▶ http://..." aria-label="분석할 문자 내용"></textarea>
+
+      <div class="chips" id="samples"></div>
+
+      <div class="row">
+        <button class="btn" id="run">분석하기</button>
+        <button class="btn ghost" id="clear">지우기</button>
+      </div>
+
+      <details class="ai">
+        <summary>＋ AI 정밀 분석 (선택 · Claude API 키 필요)</summary>
+        <div class="ai-body">
+          <p class="hint">
+            규칙 분석만으로도 대부분 걸러집니다. 새로운 수법이나 미묘한 문장까지 보고 싶을 때만 켜세요.
+            키는 이 브라우저에만 저장되며 다른 곳으로 전송되지 않습니다.
+          </p>
+          <input type="password" id="apikey" placeholder="sk-ant-... (직접 입력)" autocomplete="off" spellcheck="false">
+          <div class="row">
+            <button class="btn ghost" id="run-ai">AI 정밀 분석 실행</button>
+          </div>
+          <div class="ai-out" id="ai-out" hidden></div>
+        </div>
+      </details>
+    </div>
+
+    <div id="result">
+      <div class="card">
+        <div class="verdict">
+          <div class="gauge">
+            <svg width="104" height="104" viewBox="0 0 104 104" aria-hidden="true">
+              <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="9"></circle>
+              <circle id="gauge-arc" cx="52" cy="52" r="44" fill="none" stroke="currentColor"
+                      stroke-width="9" stroke-linecap="round"
+                      stroke-dasharray="276.5" stroke-dashoffset="276.5"></circle>
+            </svg>
+            <div class="num" id="score">0</div>
+          </div>
+          <div class="verdict-text">
+            <span class="badge" id="level">분석 중</span>
+            <p class="verdict-desc" id="verdict-desc"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>어디가 위험한가</h2>
+        <p class="sub">위험 표현에 표시했습니다.</p>
+        <div class="excerpt" id="excerpt"></div>
+      </div>
+
+      <div class="card">
+        <h2>판단 근거</h2>
+        <p class="sub">점수가 어떻게 나왔는지 신호별로 보여줍니다.</p>
+        <div id="signals"></div>
+      </div>
+
+      <div class="card">
+        <h2>지금 해야 할 일</h2>
+        <ul class="todo" id="todo"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 퀴즈 탭 ─────────────────────────────────── -->
+  <section class="panel" id="panel-quiz">
+    <div class="card">
+      <div class="quiz-meta">
+        <span id="quiz-count">1 / 8</span>
+        <span id="quiz-score">맞힌 개수 0</span>
+      </div>
+      <div class="progress"><i id="quiz-bar" style="width:0%"></i></div>
+
+      <div id="quiz-live">
+        <div class="quiz-msg" id="quiz-text"></div>
+        <div class="quiz-actions">
+          <button class="btn scam" data-ans="scam">사기 문자다</button>
+          <button class="btn real" data-ans="real">정상 문자다</button>
+        </div>
+        <div class="feedback" id="quiz-feedback" hidden></div>
+        <div class="row" id="quiz-next-row" hidden>
+          <button class="btn" id="quiz-next">다음 문제</button>
+        </div>
+      </div>
+
+      <div id="quiz-done" hidden>
+        <h2 id="quiz-result-title"></h2>
+        <p class="sub" id="quiz-result-desc"></p>
+        <div class="row"><button class="btn" id="quiz-restart">다시 풀기</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 가이드 탭 ───────────────────────────────── -->
+  <section class="panel" id="panel-guide">
+    <div class="card guide">
+      <h3>이미 링크를 눌렀다면</h3>
+      <ul>
+        <li>바로 <strong>비행기모드로 전환</strong>하고 와이파이를 끕니다. 악성 앱이 통신하는 걸 먼저 막습니다.</li>
+        <li>최근에 설치된 모르는 앱을 삭제합니다. 삭제가 안 되면 <strong>안전모드로 부팅</strong> 후 삭제합니다.</li>
+        <li>다른 기기에서 네이버·카카오·구글 <strong>비밀번호를 전부 변경</strong>합니다.</li>
+        <li>그래도 불안하면 초기화가 가장 확실합니다. 초기화 전에 사진만 따로 백업하세요.</li>
+      </ul>
+
+      <h3>이미 돈을 보냈다면</h3>
+      <ul>
+        <li><strong>112</strong> 또는 은행 콜센터에 즉시 <strong>지급정지</strong>를 요청합니다. 몇 분 차이로 회수 가능성이 갈립니다.</li>
+        <li>이체 내역, 문자, 대화 캡처를 지우지 말고 전부 보관합니다. 증거입니다.</li>
+        <li>경찰서에서 <strong>사건사고사실확인원</strong>을 발급받아 은행에 제출하면 피해구제 절차가 시작됩니다.</li>
+      </ul>
+
+      <h3>협박을 받고 있다면 (몸캠피싱 등)</h3>
+      <ul>
+        <li><strong>절대 돈을 보내지 마세요.</strong> 한 번 보내면 요구는 끝나지 않습니다.</li>
+        <li>차단하고, 연락처 접근 권한을 준 앱을 삭제합니다.</li>
+        <li>영상이 이미 퍼졌더라도 <strong>삭제 지원을 받을 수 있습니다.</strong> 혼자 해결하려 하지 마세요.</li>
+        <li>이건 <strong>당신 잘못이 아닙니다.</strong> 어른에게 말하는 게 가장 빠른 해결책입니다.</li>
+      </ul>
+
+      <h3>급할 때 — 신고</h3>
+      <p class="note">번호를 누르면 바로 전화가 걸리고, 사이트는 새 창으로 열립니다.</p>
+      <div class="contact">
+        <a href="tel:112">
+          <b>경찰 112 <i>전화</i></b>
+          <span>지급정지·긴급 신고. 송금했다면 여기부터</span>
+        </a>
+        <a href="https://ecrm.police.go.kr/minwon/main" target="_blank" rel="noopener noreferrer">
+          <b>사이버범죄 신고 (ECRM) <i>사이트</i></b>
+          <span>경찰청 온라인 접수, 24시간</span>
+        </a>
+        <a href="tel:118">
+          <b>불법스팸·해킹 118 <i>전화</i></b>
+          <span>한국인터넷진흥원, 24시간 무료</span>
+        </a>
+        <a href="tel:1332">
+          <b>금융감독원 1332 <i>전화</i></b>
+          <span>보이스피싱 상담·피해구제 절차 안내</span>
+        </a>
+      </div>
+
+      <h3>청소년 전용 창구</h3>
+      <div class="contact">
+        <a href="tel:1388">
+          <b>청소년상담 1388 <i>전화</i></b>
+          <span>24시간 무료. 무슨 일이든 먼저 물어봐도 됩니다</span>
+        </a>
+        <a href="https://www.1388.go.kr" target="_blank" rel="noopener noreferrer">
+          <b>청소년사이버상담센터 <i>사이트</i></b>
+          <span>채팅·게시판 상담. 전화가 부담스러울 때</span>
+        </a>
+        <a href="tel:117">
+          <b>학교폭력 신고 117 <i>전화</i></b>
+          <span>학교 관련 협박·갈취도 여기서 상담</span>
+        </a>
+        <a href="https://d4u.stop.or.kr" target="_blank" rel="noopener noreferrer">
+          <b>디지털성범죄피해자지원센터 <i>사이트</i></b>
+          <span>1366 · 유포된 영상·사진 삭제 지원</span>
+        </a>
+      </div>
+
+      <h3>당하기 전에 — 직접 확인</h3>
+      <div class="contact">
+        <a href="https://thecheat.co.kr" target="_blank" rel="noopener noreferrer">
+          <b>더치트 <i>사이트</i></b>
+          <span>계좌번호·전화번호에 사기 신고 이력이 있는지 조회</span>
+        </a>
+        <a href="https://www.payinfo.or.kr" target="_blank" rel="noopener noreferrer">
+          <b>어카운트인포 <i>사이트</i></b>
+          <span>내 명의로 열린 계좌 전부 조회. 대포통장 확인</span>
+        </a>
+        <a href="https://www.msafer.or.kr" target="_blank" rel="noopener noreferrer">
+          <b>엠세이퍼 <i>사이트</i></b>
+          <span>내 명의로 개통된 휴대폰 조회·가입 차단</span>
+        </a>
+        <a href="https://www.boho.or.kr" target="_blank" rel="noopener noreferrer">
+          <b>KISA 보호나라 <i>사이트</i></b>
+          <span>최신 스미싱 유형과 피해 예방 정보</span>
+        </a>
+      </div>
+
+      <h3>평소에 막는 법</h3>
+      <ul>
+        <li>안드로이드: 설정 → 보안 → <strong>출처를 알 수 없는 앱 설치 차단</strong></li>
+        <li>통신사 앱에서 <strong>소액결제 차단</strong>을 미리 걸어두기</li>
+        <li>문자 속 링크는 누르지 않고, 항상 <strong>앱이나 공식 홈페이지로 직접</strong> 들어가서 확인하기</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    피싱아이는 학습·예방 목적의 보조 도구입니다.<br>
+    판정 결과는 참고용이며, 최종 판단은 공식 기관 확인을 거치세요.
+  </footer>
+</div>
+
+<script src="assets/rules.js"></script>
+<script src="assets/samples.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

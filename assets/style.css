@@ -1,0 +1,534 @@
+/* 피싱아이(PhishEye) 스타일
+ *
+ * 반투명 유리 질감 위주. 배경에 은은한 색을 깔고 카드가 그 위에 떠 있는 구조라서,
+ * body 배경을 지우면 카드가 허옇게 보인다. 배경과 카드는 한 세트로 다뤄야 한다.
+ */
+
+:root {
+  color-scheme: light;
+
+  --ink: 22, 27, 34;            /* 텍스트 기준색 (rgb 성분) */
+  --paper: 255, 255, 255;       /* 카드 기준색 (rgb 성분) */
+
+  --bg: #eef1f6;
+  --text: #171b21;
+  --text-dim: #626d7d;
+  --text-faint: #8d97a5;
+
+  --surface: rgba(var(--paper), .72);
+  --surface-2: rgba(var(--paper), .5);
+  --surface-3: rgba(var(--ink), .045);
+  --border: rgba(var(--ink), .09);
+  --border-soft: rgba(var(--ink), .055);
+  --track: rgba(var(--ink), .08);   /* 게이지 눈금판 */
+  /* 로고에서 낚싯바늘이 눈꺼풀을 지나는 자리를 끊어내는 색.
+     카드 배경과 같아야 자연스럽다. */
+  --icon-halo: #fbfcfd;
+
+  --accent: #2f62e8;
+  --accent-soft: rgba(47, 98, 232, .1);
+
+  --safe: #0d8a5f;
+  --caution: #a87400;
+  --warn: #cf6410;
+  --danger: #d43a3f;
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --blur: saturate(180%) blur(20px);
+  --shadow: 0 1px 1px rgba(var(--ink), .03), 0 10px 32px -12px rgba(var(--ink), .16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --ink: 0, 0, 0;
+    --paper: 226, 234, 246;
+
+    --bg: #0d0f14;
+    --text: #e6ebf3;
+    --text-dim: #97a2b2;
+    --text-faint: #6d7787;
+
+    --surface: rgba(var(--paper), .055);
+    --surface-2: rgba(var(--paper), .035);
+    --surface-3: rgba(var(--paper), .06);
+    --border: rgba(var(--paper), .1);
+    --border-soft: rgba(var(--paper), .07);
+    --track: rgba(var(--paper), .1);
+    --icon-halo: #14181f;
+
+    --accent: #7ba2ff;
+    --accent-soft: rgba(123, 162, 255, .13);
+
+    --safe: #45d195;
+    --caution: #e5b948;
+    --warn: #f89552;
+    --danger: #ff7276;
+
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 12px 36px -14px rgba(0, 0, 0, .7);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  /* 카드가 떠 보이도록 배경에 아주 옅은 색 얼룩을 깐다 */
+  background-image:
+    radial-gradient(58rem 32rem at 12% -8%, rgba(47, 98, 232, .13), transparent 60%),
+    radial-gradient(46rem 30rem at 96% 4%, rgba(212, 58, 63, .09), transparent 62%),
+    radial-gradient(40rem 34rem at 50% 108%, rgba(13, 138, 95, .08), transparent 60%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: 15px;
+  line-height: 1.62;
+  letter-spacing: -.01em;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image:
+      radial-gradient(58rem 32rem at 12% -8%, rgba(70, 110, 235, .2), transparent 60%),
+      radial-gradient(46rem 30rem at 96% 4%, rgba(190, 55, 70, .14), transparent 62%),
+      radial-gradient(40rem 34rem at 50% 108%, rgba(20, 140, 105, .12), transparent 60%);
+  }
+}
+
+.wrap { max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ── 헤더 ─────────────────────────────────────────── */
+header { padding: 52px 0 30px; text-align: center; }
+
+.logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 26px; font-weight: 750; letter-spacing: -.035em;
+}
+.logo .mark { width: 34px; height: 34px; color: var(--accent); flex: none; }
+
+/* 오프라인일 때 안심시키는 배지. 이 앱은 네트워크가 없어도 판별이 된다. */
+.privacy-note.offline { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 35%, transparent); }
+
+.tagline {
+  margin: 10px auto 0; max-width: 30rem;
+  color: var(--text-dim); font-size: 14.5px; line-height: 1.55;
+}
+
+.privacy-note {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 16px; padding: 6px 14px;
+  background: var(--surface); border: 1px solid var(--border-soft);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  color: var(--text-dim); border-radius: 999px;
+  font-size: 12.5px; font-weight: 550; letter-spacing: 0;
+}
+
+/* ── 탭 ───────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: 3px; padding: 4px; margin-bottom: 22px;
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  border-radius: 14px;
+}
+.tabs button {
+  flex: 1; padding: 9px 8px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--text-dim);
+  font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] {
+  background: rgba(var(--paper), .85);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(var(--ink), .06);
+}
+@media (prefers-color-scheme: dark) {
+  .tabs button[aria-selected="true"] {
+    background: rgba(var(--paper), .11);
+    box-shadow: none;
+  }
+}
+
+.panel { display: none; animation: rise .28s ease both; }
+.panel.active { display: block; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 카드 ─────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.card h2 {
+  margin: 0; font-size: 16.5px; font-weight: 700; letter-spacing: -.02em;
+}
+.card .sub {
+  margin: 3px 0 16px; color: var(--text-faint); font-size: 13px;
+}
+
+/* ── 입력 ─────────────────────────────────────────── */
+textarea {
+  width: 100%; min-height: 132px; resize: vertical;
+  padding: 14px 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(var(--paper), .45);
+  color: var(--text);
+  font: inherit; font-size: 15px; line-height: 1.65;
+  transition: border-color .18s ease, background .18s ease;
+}
+@media (prefers-color-scheme: dark) {
+  textarea { background: rgba(var(--paper), .04); }
+}
+textarea::placeholder { color: var(--text-faint); }
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(var(--paper), .6);
+}
+@media (prefers-color-scheme: dark) {
+  textarea:focus { background: rgba(var(--paper), .07); }
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.chip {
+  padding: 6px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font: inherit; font-size: 12.5px; font-weight: 550;
+  cursor: pointer;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.chip:hover {
+  color: var(--accent);
+  border-color: rgba(47, 98, 232, .35);
+  background: var(--accent-soft);
+}
+@media (prefers-color-scheme: dark) {
+  .chip:hover { border-color: rgba(123, 162, 255, .35); }
+}
+
+.row { display: flex; gap: 8px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+
+.btn {
+  padding: 10px 20px; border: 1px solid transparent; border-radius: 11px;
+  background: var(--accent); color: #fff;
+  font: inherit; font-weight: 650; font-size: 14.5px; letter-spacing: -.01em;
+  cursor: pointer;
+  transition: opacity .16s ease, transform .08s ease;
+}
+.btn:hover { opacity: .9; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.btn.ghost {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-dim);
+}
+.btn.ghost:hover { color: var(--text); background: var(--surface-3); opacity: 1; }
+
+/* ── 결과 ─────────────────────────────────────────── */
+#result { display: none; }
+#result.show { display: block; animation: rise .3s ease both; }
+
+.verdict { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+
+.gauge { position: relative; width: 96px; height: 96px; flex: none; }
+/* svg 는 viewBox 로 스케일한다. width/height 속성값(104)을 그대로 두면
+   .gauge 박스를 넘쳐서 옆 텍스트와의 간격을 잡아먹는다. */
+.gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.gauge #gauge-arc { transition: stroke-dashoffset .7s cubic-bezier(.22, 1, .36, 1); }
+.gauge .num {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 26px; font-weight: 750; letter-spacing: -.045em;
+}
+
+.verdict-text { flex: 1; min-width: 190px; }
+.badge {
+  display: inline-block; padding: 3px 11px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0;
+  color: #fff;
+}
+.verdict-desc { margin: 9px 0 0; font-size: 14.5px; color: var(--text-dim); }
+
+.lv-safe { color: var(--safe); }
+.lv-caution { color: var(--caution); }
+.lv-warn { color: var(--warn); }
+.lv-danger { color: var(--danger); }
+/* 배지는 반투명 배경 + 진한 글자로 눌러준다 (원색 덩어리를 피한다) */
+.bg-safe { background: color-mix(in srgb, var(--safe) 16%, transparent); color: var(--safe); }
+.bg-caution { background: color-mix(in srgb, var(--caution) 18%, transparent); color: var(--caution); }
+.bg-warn { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.bg-danger { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+
+.excerpt {
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(var(--paper), .4);
+  border: 1px solid var(--border-soft);
+  font-size: 14.5px; line-height: 1.75;
+  white-space: pre-wrap; word-break: break-word;
+}
+@media (prefers-color-scheme: dark) {
+  .excerpt { background: rgba(var(--paper), .035); }
+}
+
+mark {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: inherit;
+  padding: 1px 3px; border-radius: 5px;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--danger) 55%, transparent);
+}
+
+/* ── 근거 목록 ────────────────────────────────────── */
+.signal {
+  display: flex; gap: 14px; padding: 15px 0;
+  border-top: 1px solid var(--border-soft);
+}
+.signal:first-child { border-top: 0; padding-top: 0; }
+.signal:last-child { padding-bottom: 0; }
+
+.signal .w {
+  flex: none; width: 40px; height: 40px; border-radius: 11px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  font-weight: 700; font-size: 13px; letter-spacing: -.02em;
+}
+.signal.alert .w {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.signal .cat {
+  font-size: 11.5px; font-weight: 600; color: var(--text-faint); letter-spacing: 0;
+}
+.signal .ttl { font-weight: 650; font-size: 14.5px; margin: 1px 0 4px; letter-spacing: -.015em; }
+.signal .exp { font-size: 13.5px; color: var(--text-dim); margin: 0; }
+.signal .hit {
+  display: inline-block; margin: 7px 5px 0 0; padding: 2px 9px;
+  background: var(--surface-3);
+  border-radius: 7px;
+  font-size: 12px; color: var(--text-dim);
+}
+
+.empty { color: var(--text-dim); font-size: 14px; margin: 0; }
+
+/* ── 체크리스트 ───────────────────────────────────── */
+.todo { margin: 0; padding: 0; list-style: none; }
+.todo li {
+  display: flex; gap: 12px; padding: 11px 0;
+  border-top: 1px solid var(--border-soft);
+  font-size: 14.5px;
+}
+.todo li:first-child { border-top: 0; padding-top: 0; }
+.todo li:last-child { padding-bottom: 0; }
+.todo .n {
+  flex: none; width: 21px; height: 21px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  display: grid; place-items: center;
+  font-size: 11.5px; font-weight: 700;
+  margin-top: 3px;
+}
+.todo b { font-weight: 650; }
+
+/* ── AI 정밀 분석 ─────────────────────────────────── */
+details.ai {
+  margin-top: 18px; padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+details.ai summary {
+  cursor: pointer; list-style: none;
+  font-size: 13px; font-weight: 600; color: var(--text-faint);
+  transition: color .16s ease;
+}
+details.ai summary::-webkit-details-marker { display: none; }
+details.ai summary:hover { color: var(--text-dim); }
+details.ai[open] summary { color: var(--text-dim); margin-bottom: 4px; }
+
+.ai-body { margin-top: 12px; }
+input[type="password"] {
+  width: 100%; padding: 10px 13px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: rgba(var(--paper), .45); color: var(--text);
+  font: inherit; font-size: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  input[type="password"] { background: rgba(var(--paper), .04); }
+}
+input[type="password"]:focus { outline: none; border-color: var(--accent); }
+input[type="password"]::placeholder { color: var(--text-faint); }
+
+.hint { font-size: 12.5px; color: var(--text-faint); margin: 0 0 10px; line-height: 1.55; }
+
+.ai-out {
+  margin-top: 14px; padding: 15px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  font-size: 14px; line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* ── 퀴즈 ─────────────────────────────────────────── */
+.quiz-meta {
+  display: flex; justify-content: space-between;
+  font-size: 12.5px; color: var(--text-faint); margin: 0 0 9px;
+}
+.progress {
+  height: 4px; border-radius: 999px; overflow: hidden;
+  background: var(--surface-3);
+}
+.progress i {
+  display: block; height: 100%; border-radius: 999px;
+  background: var(--accent);
+  transition: width .35s cubic-bezier(.22, 1, .36, 1);
+}
+
+.quiz-msg {
+  padding: 18px;
+  border-radius: var(--radius-sm);
+  background: rgba(var(--paper), .4);
+  border: 1px solid var(--border-soft);
+  font-size: 15px; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+  margin: 18px 0 16px;
+}
+@media (prefers-color-scheme: dark) {
+  .quiz-msg { background: rgba(var(--paper), .035); }
+}
+
+.quiz-actions { display: flex; gap: 8px; }
+.quiz-actions .btn { flex: 1; }
+/* 정답 판정 전에는 어느 쪽도 유도하지 않도록 둘 다 중립 톤으로 둔다 */
+.btn.scam, .btn.real {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.btn.scam:hover {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  opacity: 1;
+}
+.btn.real:hover {
+  color: var(--safe);
+  border-color: color-mix(in srgb, var(--safe) 40%, transparent);
+  background: color-mix(in srgb, var(--safe) 8%, transparent);
+  opacity: 1;
+}
+
+.feedback {
+  margin-top: 16px; padding: 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; line-height: 1.7;
+  animation: rise .25s ease both;
+}
+.feedback.ok {
+  background: color-mix(in srgb, var(--safe) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--safe) 28%, transparent);
+}
+.feedback.no {
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
+}
+.feedback b { display: block; margin-bottom: 4px; font-size: 14.5px; font-weight: 700; }
+.feedback.ok b { color: var(--safe); }
+.feedback.no b { color: var(--danger); }
+
+#quiz-done h2 { margin: 22px 0 0; font-size: 19px; letter-spacing: -.025em; }
+#quiz-done .sub { margin-top: 5px; font-size: 14px; color: var(--text-dim); }
+
+/* ── 가이드 ───────────────────────────────────────── */
+.guide h3 {
+  font-size: 14.5px; font-weight: 700; margin: 26px 0 7px;
+  letter-spacing: -.015em;
+}
+.guide h3:first-child { margin-top: 0; }
+.guide p, .guide li { font-size: 14px; color: var(--text-dim); }
+.guide ul { padding-left: 18px; margin: 6px 0; }
+.guide li { margin-bottom: 4px; }
+.guide li::marker { color: var(--text-faint); }
+.guide strong { color: var(--text); font-weight: 650; }
+
+.guide .note { font-size: 12.5px; color: var(--text-faint); margin: 0 0 10px; }
+
+.contact {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px; margin-top: 10px;
+}
+/* 카드 전체가 링크다. 손가락으로 누르는 화면이라 표적을 크게 잡는다. */
+.contact a {
+  display: block;
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  color: inherit; text-decoration: none;
+  transition: border-color .16s ease, background .16s ease, transform .08s ease;
+}
+.contact a:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--accent-soft);
+}
+.contact a:active { transform: translateY(1px); }
+.contact a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.contact b {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13.5px; font-weight: 650; color: var(--text);
+}
+/* 전화인지 웹사이트인지 누르기 전에 알려준다 */
+.contact b i {
+  flex: none; padding: 1px 6px; border-radius: 5px;
+  background: var(--surface-3); color: var(--text-faint);
+  font-style: normal; font-size: 10.5px; font-weight: 600; letter-spacing: 0;
+}
+.contact span { display: block; margin-top: 2px; font-size: 12.5px; color: var(--text-faint); line-height: 1.5; }
+
+footer {
+  text-align: center; padding: 32px 0 0;
+  font-size: 12px; color: var(--text-faint); line-height: 1.7;
+}
+
+/* ── 반응형 ───────────────────────────────────────── */
+@media (max-width: 520px) {
+  header { padding: 36px 0 24px; }
+  .logo { font-size: 23px; }
+  .card { padding: 18px; border-radius: 16px; }
+  .gauge { width: 84px; height: 84px; }
+  .gauge .num { font-size: 23px; }
+  .verdict { gap: 16px; }
+}
+
+/* backdrop-filter 미지원 브라우저에서는 불투명하게 떨어뜨린다 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card, .tabs, .privacy-note { background: rgba(var(--paper), .94); }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @media (prefers-color-scheme: dark) {
+    .card, .tabs, .privacy-note { background: #171b22; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
