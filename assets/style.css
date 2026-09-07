@@ -1,14 +1,8 @@
-/* 피싱아이(PhishEye) 스타일
- *
- * 반투명 유리 질감 위주. 배경에 은은한 색을 깔고 카드가 그 위에 떠 있는 구조라서,
- * body 배경을 지우면 카드가 허옇게 보인다. 배경과 카드는 한 세트로 다뤄야 한다.
- */
-
 :root {
   color-scheme: light;
 
-  --ink: 22, 27, 34;            /* 텍스트 기준색 (rgb 성분) */
-  --paper: 255, 255, 255;       /* 카드 기준색 (rgb 성분) */
+  --ink: 22, 27, 34;            
+  --paper: 255, 255, 255;       
 
   --bg: #eef1f6;
   --text: #171b21;
@@ -20,9 +14,8 @@
   --surface-3: rgba(var(--ink), .045);
   --border: rgba(var(--ink), .09);
   --border-soft: rgba(var(--ink), .055);
-  --track: rgba(var(--ink), .08);   /* 게이지 눈금판 */
-  /* 로고에서 낚싯바늘이 눈꺼풀을 지나는 자리를 끊어내는 색.
-     카드 배경과 같아야 자연스럽다. */
+  --track: rgba(var(--ink), .08);   
+  
   --icon-halo: #fbfcfd;
 
   --accent: #2f62e8;
@@ -79,7 +72,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
-  /* 카드가 떠 보이도록 배경에 아주 옅은 색 얼룩을 깐다 */
+  
   background-image:
     radial-gradient(58rem 32rem at 12% -8%, rgba(47, 98, 232, .13), transparent 60%),
     radial-gradient(46rem 30rem at 96% 4%, rgba(212, 58, 63, .09), transparent 62%),
@@ -104,16 +97,14 @@ body {
 
 .wrap { max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
 
-/* ── 헤더 ─────────────────────────────────────────── */
 header { padding: 52px 0 30px; text-align: center; }
 
 .logo {
   display: inline-flex; align-items: center; gap: 10px;
   font-size: 26px; font-weight: 750; letter-spacing: -.035em;
 }
-.logo .mark { width: 34px; height: 34px; color: var(--accent); flex: none; }
+.logo .mark { width: 44px; height: 44px; color: var(--accent); flex: none; }
 
-/* 오프라인일 때 안심시키는 배지. 이 앱은 네트워크가 없어도 판별이 된다. */
 .privacy-note.offline { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 35%, transparent); }
 
 .tagline {
@@ -130,7 +121,6 @@ header { padding: 52px 0 30px; text-align: center; }
   font-size: 12.5px; font-weight: 550; letter-spacing: 0;
 }
 
-/* ── 탭 ───────────────────────────────────────────── */
 .tabs {
   display: flex; gap: 3px; padding: 4px; margin-bottom: 22px;
   background: var(--surface-2); border: 1px solid var(--border-soft);
@@ -164,7 +154,6 @@ header { padding: 52px 0 30px; text-align: center; }
   to { opacity: 1; transform: none; }
 }
 
-/* ── 카드 ─────────────────────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -181,7 +170,6 @@ header { padding: 52px 0 30px; text-align: center; }
   margin: 3px 0 16px; color: var(--text-faint); font-size: 13px;
 }
 
-/* ── 입력 ─────────────────────────────────────────── */
 textarea {
   width: 100%; min-height: 132px; resize: vertical;
   padding: 14px 15px;
@@ -244,15 +232,13 @@ textarea:focus {
 }
 .btn.ghost:hover { color: var(--text); background: var(--surface-3); opacity: 1; }
 
-/* ── 결과 ─────────────────────────────────────────── */
 #result { display: none; }
 #result.show { display: block; animation: rise .3s ease both; }
 
 .verdict { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
 
 .gauge { position: relative; width: 96px; height: 96px; flex: none; }
-/* svg 는 viewBox 로 스케일한다. width/height 속성값(104)을 그대로 두면
-   .gauge 박스를 넘쳐서 옆 텍스트와의 간격을 잡아먹는다. */
+
 .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
 .gauge #gauge-arc { transition: stroke-dashoffset .7s cubic-bezier(.22, 1, .36, 1); }
 .gauge .num {
@@ -272,7 +258,7 @@ textarea:focus {
 .lv-caution { color: var(--caution); }
 .lv-warn { color: var(--warn); }
 .lv-danger { color: var(--danger); }
-/* 배지는 반투명 배경 + 진한 글자로 눌러준다 (원색 덩어리를 피한다) */
+
 .bg-safe { background: color-mix(in srgb, var(--safe) 16%, transparent); color: var(--safe); }
 .bg-caution { background: color-mix(in srgb, var(--caution) 18%, transparent); color: var(--caution); }
 .bg-warn { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
@@ -297,7 +283,6 @@ mark {
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--danger) 55%, transparent);
 }
 
-/* ── 근거 목록 ────────────────────────────────────── */
 .signal {
   display: flex; gap: 14px; padding: 15px 0;
   border-top: 1px solid var(--border-soft);
@@ -331,7 +316,6 @@ mark {
 
 .empty { color: var(--text-dim); font-size: 14px; margin: 0; }
 
-/* ── 체크리스트 ───────────────────────────────────── */
 .todo { margin: 0; padding: 0; list-style: none; }
 .todo li {
   display: flex; gap: 12px; padding: 11px 0;
@@ -349,7 +333,6 @@ mark {
 }
 .todo b { font-weight: 650; }
 
-/* ── AI 정밀 분석 ─────────────────────────────────── */
 details.ai {
   margin-top: 18px; padding-top: 16px;
   border-top: 1px solid var(--border-soft);
@@ -387,7 +370,6 @@ input[type="password"]::placeholder { color: var(--text-faint); }
   white-space: pre-wrap;
 }
 
-/* ── 퀴즈 ─────────────────────────────────────────── */
 .quiz-meta {
   display: flex; justify-content: space-between;
   font-size: 12.5px; color: var(--text-faint); margin: 0 0 9px;
@@ -417,7 +399,7 @@ input[type="password"]::placeholder { color: var(--text-faint); }
 
 .quiz-actions { display: flex; gap: 8px; }
 .quiz-actions .btn { flex: 1; }
-/* 정답 판정 전에는 어느 쪽도 유도하지 않도록 둘 다 중립 톤으로 둔다 */
+
 .btn.scam, .btn.real {
   background: var(--surface-2);
   border-color: var(--border);
@@ -457,7 +439,6 @@ input[type="password"]::placeholder { color: var(--text-faint); }
 #quiz-done h2 { margin: 22px 0 0; font-size: 19px; letter-spacing: -.025em; }
 #quiz-done .sub { margin-top: 5px; font-size: 14px; color: var(--text-dim); }
 
-/* ── 가이드 ───────────────────────────────────────── */
 .guide h3 {
   font-size: 14.5px; font-weight: 700; margin: 26px 0 7px;
   letter-spacing: -.015em;
@@ -475,7 +456,7 @@ input[type="password"]::placeholder { color: var(--text-faint); }
   display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 8px; margin-top: 10px;
 }
-/* 카드 전체가 링크다. 손가락으로 누르는 화면이라 표적을 크게 잡는다. */
+
 .contact a {
   display: block;
   padding: 13px 14px;
@@ -496,7 +477,7 @@ input[type="password"]::placeholder { color: var(--text-faint); }
   display: flex; align-items: center; gap: 7px;
   font-size: 13.5px; font-weight: 650; color: var(--text);
 }
-/* 전화인지 웹사이트인지 누르기 전에 알려준다 */
+
 .contact b i {
   flex: none; padding: 1px 6px; border-radius: 5px;
   background: var(--surface-3); color: var(--text-faint);
@@ -509,7 +490,6 @@ footer {
   font-size: 12px; color: var(--text-faint); line-height: 1.7;
 }
 
-/* ── 반응형 ───────────────────────────────────────── */
 @media (max-width: 520px) {
   header { padding: 36px 0 24px; }
   .logo { font-size: 23px; }
@@ -519,7 +499,6 @@ footer {
   .verdict { gap: 16px; }
 }
 
-/* backdrop-filter 미지원 브라우저에서는 불투명하게 떨어뜨린다 */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .card, .tabs, .privacy-note { background: rgba(var(--paper), .94); }
 }

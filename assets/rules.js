@@ -1,23 +1,7 @@
-/*
- * 피싱아이(PhishEye) - 탐지 규칙 엔진
- *
- * 서버 없이 브라우저에서만 동작하는 휴리스틱 분석기.
- * 문자(SMS) 원문을 받아 위험 신호를 찾아내고, 신호마다 가중치를 더해
- * 0~100 위험 점수와 근거 목록을 돌려준다.
- *
- * 설계 원칙
- *  1. 근거 없는 점수는 만들지 않는다. 모든 점수에는 "어느 문구 때문인지"가 붙는다.
- *  2. 문자 원문은 절대 외부로 나가지 않는다. 이 파일의 분석은 100% 로컬.
- *  3. 청소년이 실제로 당하는 사기 유형에 가중치를 더 준다.
- */
 (function (global) {
   'use strict';
 
-  /* ── 1. 위험 신호 사전 ───────────────────────────────────────── */
-  // weight : 이 신호가 위험 점수에 더하는 값 (같은 규칙은 여러 번 걸려도 한 번만 가산)
-  // exclude: 이 정규식에 통째로 들어맞는 매치는 오탐으로 보고 버린다
   const RULES = [
-    /* 긴급성·공포 유발 */
     {
       id: 'urgency',
       category: '심리 압박',
@@ -37,7 +21,6 @@
       explain: '겁을 줘서 링크를 누르게 만드는 전형적인 수법입니다.'
     },
 
-    /* 금전·개인정보 요구 */
     {
       id: 'credential',
       category: '정보 탈취',
@@ -59,8 +42,6 @@
     {
       id: 'app_install',
       category: '악성 앱',
-      // 문자로 받은 앱을 설치하는 순간 통화·문자·연락처가 전부 넘어간다.
-      // 정상 기관은 절대 하지 않는 요구라서 단독으로도 '위험' 판정이 나와야 한다.
       weight: 30,
       label: '앱 설치·원격제어를 유도',
       patterns: [/APK/gi, /설치\s*(파일|링크|후|하세요|해주세요|해줘)/g, /다운(로드)?\s*(받|하)/g,
@@ -69,7 +50,6 @@
       explain: 'APK 설치나 원격제어 앱은 휴대폰을 통째로 넘기는 행위입니다. 문자로 온 설치 요청은 무조건 거부하세요.'
     },
 
-    /* 사칭 */
     {
       id: 'impersonation_gov',
       category: '기관 사칭',
@@ -99,7 +79,6 @@
       explain: '기록이 남는 문자 대신 지우기 쉬운 메신저로 옮기려는 시도입니다. 사기는 대부분 이 단계에서 시작됩니다.'
     },
 
-    /* 청소년 표적 시나리오 (가중치 상향) */
     {
       id: 'teen_job',
       category: '청소년 표적',
@@ -157,7 +136,6 @@
       alert: true
     },
 
-    /* 미끼 */
     {
       id: 'prize',
       category: '미끼',
@@ -168,15 +146,12 @@
       explain: '신청한 적 없는 당첨·환급 안내는 링크를 누르게 하려는 미끼입니다.'
     },
 
-    /* 형태적 위장 */
     {
       id: 'obfuscation',
       category: '필터 우회',
       label: '글자를 변형해 스팸 필터를 회피',
       weight: 18,
       patterns: [/[ㄱ-ㅎㅏ-ㅣ]{2,}/g, /[０-９Ａ-Ｚａ-ｚ]{3,}/g],
-      // ㅋㅋ, ㅠㅠ, ㅎㅎ 같은 이모티콘은 일상 대화에서 흔하다. 이걸 필터 우회로 세면
-      // 친구끼리 주고받는 정상 메시지가 전부 위험으로 잡힌다.
       exclude: /^[ㅋㅎㅠㅜㅡㅇㅗㅏ]+$/,
       explain: '자음만 쓰거나 전각문자를 섞는 건 스팸 차단 필터를 피하려는 조작입니다. 정상 문자에는 거의 없습니다.'
     },
@@ -190,16 +165,12 @@
     }
   ];
 
-  /* ── 2. 링크(URL) 분석 ───────────────────────────────────────── */
   const URL_RE = /((?:https?:\/\/)?(?:[\w-]+\.)+[a-z]{2,}(?::\d+)?(?:\/[^\s]*)?)/gi;
 
-  // 진짜 목적지를 감추는 단축 URL 서비스
   const SHORTENERS = ['bit.ly', 'me2.do', 'buly.kr', 'tinyurl.com', 'goo.gl', 'han.gl',
                       'url.kr', 'vo.la', 'abit.ly', 'is.gd', 'c11.kr', 'urlz.fr', 't.ly'];
-  // 가입이 쉽고 값이 싸서 사기 사이트가 즐겨 쓰는 최상위 도메인
   const RISKY_TLD = ['top', 'xyz', 'cc', 'icu', 'buzz', 'click', 'work', 'live',
                      'link', 'rest', 'online', 'site', 'cyou', 'sbs'];
-  // 사칭당하는 브랜드 (타이포스쿼팅 탐지용)
   const BRANDS = ['kakao', 'naver', 'toss', 'kbstar', 'shinhan', 'wooribank', 'nonghyup',
                   'coupang', 'daangn', 'epost', 'apple', 'google'];
   const OFFICIAL = {
@@ -247,7 +218,6 @@
         reasons.push('하이픈이 많은 도메인 (정상 기관은 드묾)');
         weight += 10;
       }
-      // 타이포스쿼팅: 브랜드명이 들어있지만 공식 도메인이 아닌 경우
       for (const b of BRANDS) {
         if (host.includes(b) && !isOfficial(host, b)) {
           reasons.push('공식 도메인이 아니면서 ' + b + ' 를 흉내 냄');
@@ -255,7 +225,6 @@
           break;
         }
       }
-      // 숫자를 섞어 브랜드를 흉내 낸 경우 (kaka0, nav3r ...)
       if (/kaka0|nav3r|t0ss|g00gle|c0upang|sh1nhan/i.test(host)) {
         reasons.push('숫자를 섞어 브랜드명을 흉내 냄');
         weight += 26;
@@ -270,7 +239,6 @@
     return found;
   }
 
-  /* ── 3. 종합 분석 ────────────────────────────────────────────── */
   function analyze(text) {
     const signals = [];
     const highlights = [];
@@ -282,7 +250,7 @@
         let m;
         while ((m = re.exec(text)) !== null) {
           if (m[0].length === 0) { re.lastIndex++; continue; }
-          if (rule.exclude && rule.exclude.test(m[0])) continue; // 알려진 오탐은 버린다
+          if (rule.exclude && rule.exclude.test(m[0])) continue;
           matches.push({ start: m.index, end: m.index + m[0].length, text: m[0] });
         }
       }
@@ -316,7 +284,6 @@
 
     let score = signals.reduce(function (s, sig) { return s + sig.weight; }, 0);
 
-    // 조합 가산점: 링크 + 심리압박 + 정보/금전 요구가 함께 나오면 사기 확률이 급등한다
     const cats = new Set(signals.map(function (s) { return s.category; }));
     const combo = cats.has('의심 링크') && cats.has('심리 압박')
       && (cats.has('정보 탈취') || cats.has('금전 요구') || cats.has('악성 앱'));
@@ -341,7 +308,6 @@
     return { key: 'safe', label: '낮음', desc: '뚜렷한 사기 신호는 없습니다. 다만 100% 안전을 보장하지는 않습니다.' };
   }
 
-  // 겹치는 하이라이트 구간을 하나로 합친다
   function mergeHighlights(list) {
     const sorted = list.slice().sort(function (a, b) { return a.start - b.start; });
     const out = [];

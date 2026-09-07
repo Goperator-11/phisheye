@@ -1,16 +1,9 @@
-/*
- * 피싱아이(PhishEye) - 화면 제어
- *
- * rules.js 가 만든 분석 결과를 화면에 그리고, 학습 퀴즈와
- * (선택인) AI 정밀 분석을 담당한다.
- */
 (function () {
   'use strict';
 
   const $ = function (sel) { return document.querySelector(sel); };
-  const CIRC = 2 * Math.PI * 44; // 게이지 원둘레
+  const CIRC = 2 * Math.PI * 44;
 
-  /* ── 탭 전환 ─────────────────────────────────────── */
   document.querySelectorAll('.tabs button').forEach(function (btn) {
     btn.addEventListener('click', function () {
       document.querySelectorAll('.tabs button').forEach(function (b) {
@@ -22,7 +15,6 @@
     });
   });
 
-  /* ── 예시 문자 칩 ────────────────────────────────── */
   const chipBox = $('#samples');
   window.PhishEyeData.SAMPLES.forEach(function (s) {
     const b = document.createElement('button');
@@ -36,7 +28,6 @@
     chipBox.appendChild(b);
   });
 
-  /* ── 분석 실행 ───────────────────────────────────── */
   $('#run').addEventListener('click', analyze);
   $('#clear').addEventListener('click', function () {
     $('#input').value = '';
@@ -45,7 +36,6 @@
     $('#input').focus();
   });
   $('#input').addEventListener('keydown', function (e) {
-    // Ctrl/Cmd + Enter 로도 분석
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyze();
   });
 
@@ -65,7 +55,6 @@
   }
 
   function render(text, r) {
-    // 게이지
     const lv = r.level.key;
     const gauge = $('#gauge-arc');
     gauge.parentElement.parentElement.className = 'gauge lv-' + lv;
@@ -78,10 +67,8 @@
     badge.className = 'badge bg-' + lv;
     $('#verdict-desc').textContent = r.level.desc;
 
-    // 원문 하이라이트
     $('#excerpt').innerHTML = highlight(text, r.highlights);
 
-    // 근거 목록
     const box = $('#signals');
     box.innerHTML = '';
     if (r.signals.length === 0) {
@@ -119,7 +106,6 @@
       box.appendChild(el);
     }
 
-    // 대응 체크리스트
     renderTodo(r);
   }
 
@@ -161,14 +147,12 @@
     });
   }
 
-  /* ── 텍스트 유틸 ─────────────────────────────────── */
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
-  // 원문에 <mark> 를 씌운다. 반드시 이스케이프 후 조립한다.
   function highlight(text, spans) {
     if (!spans.length) return esc(text);
     let out = '';
@@ -183,13 +167,11 @@
     return out;
   }
 
-  /* ── AI 정밀 분석 (선택) ─────────────────────────── */
-  // 규칙 엔진이 못 잡는 새로운 수법을 보완하는 용도. 키가 없으면 이 기능만 꺼진다.
   const KEY_STORE = 'phisheye.apikey';
   try {
     const saved = localStorage.getItem(KEY_STORE);
     if (saved) $('#apikey').value = saved;
-  } catch (e) { /* 저장소 접근 불가 환경 무시 */ }
+  } catch (e) {}
 
   $('#run-ai').addEventListener('click', async function () {
     const key = $('#apikey').value.trim();
@@ -202,7 +184,7 @@
       out.textContent = 'API 키를 입력해야 AI 정밀 분석을 쓸 수 있습니다. 키 없이도 위의 규칙 분석은 그대로 동작합니다.';
       return;
     }
-    try { localStorage.setItem(KEY_STORE, key); } catch (e) { /* 무시 */ }
+    try { localStorage.setItem(KEY_STORE, key); } catch (e) {}
 
     out.hidden = false;
     out.textContent = '분석 중...';
@@ -220,8 +202,6 @@
         body: JSON.stringify({
           model: 'claude-opus-5',
           max_tokens: 1500,
-          // 문자 한 통을 분류하는 단순한 일이라 깊게 생각할 필요가 없다.
-          // effort 를 낮추면 응답이 빨라지고 비용도 크게 줄어든다.
           output_config: { effort: 'low' },
           system: '너는 한국 청소년에게 사기 문자를 설명해주는 보안 도우미다. ' +
             '전문용어를 피하고 고등학생이 이해할 수 있는 말로, 반드시 한국어로 답한다. ' +
@@ -236,7 +216,6 @@
       });
 
       if (!res.ok) {
-        // 원문 JSON을 그대로 보여주면 사용자는 무슨 말인지 모른다. 상황별로 옮겨준다.
         const detail = await res.text();
         console.warn('[피싱아이] API 응답', res.status, detail);
         throw new Error(explainHttpError(res.status));
@@ -268,7 +247,6 @@
     return 'AI 분석을 불러오지 못했습니다. (오류 ' + status + ')';
   }
 
-  /* ── 학습 퀴즈 ───────────────────────────────────── */
   const QUIZ = window.PhishEyeData.QUIZ;
   let qOrder = [];
   let qIndex = 0;
@@ -367,10 +345,6 @@
   $('#quiz-restart').addEventListener('click', startQuiz);
   startQuiz();
 
-  /* ── 앱(PWA)으로 동작하기 ────────────────────────── */
-
-  // 서비스워커: 인터넷이 없어도 앱이 열리게 한다.
-  // file:// 로 열었을 때는 등록되지 않으므로 조용히 넘어간다.
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (e) {
@@ -379,26 +353,21 @@
     });
   }
 
-  // 문자 앱에서 "공유 → 피싱아이"로 넘어온 내용을 바로 분석한다.
-  // 복사·붙여넣기 단계가 없어야 실제로 쓴다.
   const params = new URLSearchParams(location.search);
   const shared = [params.get('title'), params.get('text'), params.get('url')]
     .filter(Boolean).join('\n').trim();
   if (shared) {
     $('#input').value = shared;
     analyze();
-    // 주소창에 문자 내용이 남지 않게 지운다
     history.replaceState(null, '', location.pathname);
   }
 
-  // 홈 화면 바로가기(사기 문자 훈련 / 당했을 때)로 진입한 경우
   const tab = params.get('tab');
   if (tab) {
     const btn = document.querySelector('.tabs button[data-tab="' + tab + '"]');
     if (btn) btn.click();
   }
 
-  // 오프라인 상태를 숨기지 않고 오히려 강점으로 보여준다
   function showNetworkState() {
     const note = $('#privacy-note');
     if (navigator.onLine) {
