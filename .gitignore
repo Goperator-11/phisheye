@@ -5,3 +5,4 @@ docs/
 # 임시 파일
 assets/_*.html
 *.b64
+assets/brand/
